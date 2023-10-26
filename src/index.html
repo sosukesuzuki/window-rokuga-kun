@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<head>
+  <title>ウィンドウ録画くん</title>
+  <meta charset="utf8" />
+</head>
+<body>
+  <h1>ウィンドウ録画くん</h1>
+  <button id="record-button">ウィンドウの録画を開始する</button>
+  <video
+    id="local-video"
+    autoplay
+    style="width: 100%; border: 1px solid black"
+  ></video>
+  <script type="module">
+    const recordButton = document.getElementById("record-button");
+    recordButton.addEventListener("click", async () => {
+      const stream = await navigator.mediaDevices.getDisplayMedia({
+        video: true,
+        audio: false,
+      });
+
+      const video = document.getElementById("local-video");
+      video.srcObject = stream;
+
+      const recorder = new MediaRecorder(stream);
+      const chunks = [];
+      recorder.addEventListener("dataavailable", (event) => {
+        chunks.push(event.data);
+      });
+      recorder.addEventListener("stop", () => {
+        const blob = new Blob(chunks);
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = crypto.randomUUID() + ".webm";
+        a.click();
+      });
+      recorder.start();
+      recordButton.textContent = "Stop recording";
+      recordButton.addEventListener("click", () => {
+        recorder.stop();
+        recordButton.textContent = "Start to record your display";
+      });
+    });
+  </script>
+</body>
